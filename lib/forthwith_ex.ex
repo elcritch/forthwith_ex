@@ -17,6 +17,7 @@ defmodule ForthwithEx do
   end
 end
 
+
 defmodule ForthWithEx.UART.Framing do
   @behaviour Nerves.UART.Framing
 
