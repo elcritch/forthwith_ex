@@ -11,45 +11,11 @@ defmodule ForthWithEx do
     children = [
       {Registry, keys: :unique, name: Registry.ForthWithEx},
       {Nerves.UART, name: ForthWithEx.UART},
-      {Task, &initialize_uart/0},
+      # {Task, &initialize_uart/0},
+      {ForthWithEx.UARTManager, name: UARTManager },
     ]
     Supervisor.start_link(children, strategy: :one_for_one)
   end
 
-  def initialize_uart() do
-    Logger.warn("Starting UARTs...")
-    for dev_name <- Application.get_env(:forthwith_ex, :uarts) do
-      dev_conf = Application.get_env(:forthwith_ex, dev_name)
-      Logger.info("UART: #{inspect dev_name} -- #{inspect dev_conf}")
-
-      pid = Process.whereis(ForthWithEx.UART)
-
-      result = 
-        pid |> UART.open(dev_conf[:name], dev_conf)
-      Logger.info("UART open: #{inspect result}")
-
-      result = 
-        pid |> Nerves.UART.configure(framing:
-          {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>> })
-
-      Logger.info("UART configure: #{inspect result}")
-    end
-
-    loop_uarts()
-  end
-
-  def loop_uarts() do
-    receive do
-      msg ->
-        publish_uart(msg)
-    end
-    loop_uarts()
-  end
-
-  def publish_uart(msg) do
-    Registry.dispatch(Registry.ForthWithEx, ForthClient, fn entries ->
-      for {pid, _} <- entries, do: send(pid, msg)
-    end)
-  end
 end
 
