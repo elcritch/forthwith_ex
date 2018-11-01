@@ -107,8 +107,8 @@ defmodule ForthWithEx.ShellHandler.Example do
       "%%exit" ->
         IO.puts("Goodbye.")
 
-      _other ->
-        IO.puts("Uknown command `#{inspect msg}`.")
+      other ->
+        IO.puts("Uknown command `#{inspect other}`.")
         loop(state)
     end
   end
