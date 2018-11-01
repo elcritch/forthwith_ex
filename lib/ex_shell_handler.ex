@@ -1,9 +1,9 @@
-defmodule ForthWithEx.ShellHandler.Example do
+defmodule ForthWithEx.ShellHandler.Default do
   use IExSshShell.ShellHandler
   # use GenServer
   require Logger
 
-  def start(opts \\ []) do
+  def start(_opts \\ []) do
     spawn(fn ->
       case :init.notify_when_started(self()) do
         :started -> :ok
@@ -62,7 +62,7 @@ defmodule ForthWithEx.ShellHandler.Example do
       {:input, ^input, msg} when is_list(msg) ->
         handle_input(state, to_string(msg))
 
-      {item, ^input, msg} ->
+      {:input, ^input, msg} ->
         handle_input(state, msg)
 
       {item, ^input, msg} ->
@@ -87,7 +87,8 @@ defmodule ForthWithEx.ShellHandler.Example do
 
   defp handle_input(state, "%%" <> _name = code) when is_binary(code) do
     code = String.trim(code)
-    IO.puts("Received shell special command: #{inspect(code)}")
+    IO.binwrite("Received shell special command: #{inspect(code)}")
+    special_cmds_cb = state.special_cmds_cb
 
     case code do
       "%%enumerate" ->
@@ -107,6 +108,13 @@ defmodule ForthWithEx.ShellHandler.Example do
       "%%exit" ->
         IO.puts("Goodbye.")
 
+      other when is_function(special_cmds_cb) ->
+        if state.special_cmds_cb.(other) do
+          loop(state)
+        else
+          IO.puts("Uknown command `#{inspect other}`.")
+        end
+
       other ->
         IO.puts("Uknown command `#{inspect other}`.")
         loop(state)
@@ -121,7 +129,7 @@ defmodule ForthWithEx.ShellHandler.Example do
     loop(%{state | counter: state.counter + 1})
   end
 
-  defp handle_input(state, {:error, :interrupted}) do
+  defp handle_input(_state, {:error, :interrupted}) do
     IO.puts("Caught Ctrl+C...")
     IO.puts("Exiting...")
   end
@@ -131,11 +139,15 @@ defmodule ForthWithEx.ShellHandler.Example do
     uart_pid = Process.whereis(ForthWithEx.UART)
     Nerves.UART.write(uart_pid, "\n")
 
-    %{prefix: prefix, counter: 1, uart_pid: uart_pid}
+    special_cmds_cb =
+      Application.get_env(:forthwith_ex, :special_commands_callback)
+
+
+    %{prefix: prefix, counter: 1, uart_pid: uart_pid, special_cmds_cb: special_cmds_cb  }
   end
 
   defp io_get(pid, prefix, counter) do
-    # prompt = prompt(prefix, counter)
+    _prompt = prompt(prefix, counter)
     send(pid, {:input, self(), IO.gets(:stdio, " ")})
   end
 

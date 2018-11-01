@@ -1,6 +1,5 @@
 defmodule ForthWithEx do
   require Logger
-  alias Nerves.UART
 
   @moduledoc """
   Documentation for ForthWithEx.
