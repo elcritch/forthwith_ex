@@ -1,7 +1,7 @@
 
 defmodule ForthWithEx.ShellHandler.Example do
   use IExSshShell.ShellHandler
-  use GenServer
+  # use GenServer
   require Logger
 
   def start(opts \\ []) do
@@ -15,9 +15,9 @@ defmodule ForthWithEx.ShellHandler.Example do
     end)
   end
 
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts)
-  end
+  # def start_link(opts) do
+    # GenServer.start_link(__MODULE__, opts)
+  # end
 
   def on_shell(_username, _pubkey, _ip, _port) do
     on_shell()
