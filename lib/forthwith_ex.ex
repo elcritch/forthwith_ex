@@ -29,7 +29,7 @@ defmodule ForthWithEx do
 
       result = 
         pid |> Nerves.UART.configure(framing:
-          {ForthWithEx.UART.Framing, separator: <<"\r\n", 6>> })
+          {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>> })
 
       Logger.info("UART configure: #{inspect result}")
     end

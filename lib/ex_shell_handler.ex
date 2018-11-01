@@ -69,8 +69,15 @@ defmodule ForthWithEx.ShellHandler.Example do
     end
   end
 
+  defp handle_input(state, {:nerves_uart, _uart_name, {:partial, msg}}) do
+    IO.write(msg)
+    loop(%{state | counter: state.counter + 1})
+  end
+
   defp handle_input(state, {:nerves_uart, _uart_name, msg}) do
-    IO.puts msg
+    # IO.puts("IN: #{inspect msg <> <<0>> }")
+    # IO.write(msg |> String.trim("\r\n" <> <<6>>))
+    IO.write(msg)
     loop(%{state | counter: state.counter + 1})
   end
 
@@ -113,7 +120,7 @@ defmodule ForthWithEx.ShellHandler.Example do
 
   defp io_get(pid, prefix, counter) do
     # prompt = prompt(prefix, counter)
-    send pid, {:input, self(), IO.gets(:stdio, "> ")}
+    send pid, {:input, self(), IO.gets(:stdio, " ")}
   end
 
   defp prompt(prefix, counter) do

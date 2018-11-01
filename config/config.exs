@@ -6,7 +6,8 @@ use Mix.Config
 config :forthwith_ex, :ttyACM0,
   name: "ttyACM0",
   speed: 115200,
-  active: true
+  active: true,
+  rx_framing_timeout: 50
 
 config :forthwith_ex, uarts: [ :ttyACM0 ]
 
