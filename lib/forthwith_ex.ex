@@ -7,6 +7,7 @@ defmodule ForthWithEx do
   """
 
   def start(_type, _args) do
+    Logger.warn("starting forthwith_ex")
     children = [
       {Registry, keys: :unique, name: Registry.ForthWithEx},
       {Nerves.UART, name: ForthWithEx.UART},
@@ -16,7 +17,7 @@ defmodule ForthWithEx do
   end
 
   def initialize_uart() do
-    Logger.info("Starting UARTs...")
+    Logger.warn("Starting UARTs...")
     for dev_name <- Application.get_env(:forthwith_ex, :uarts) do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
       Logger.info("UART: #{inspect dev_name} -- #{inspect dev_conf}")
