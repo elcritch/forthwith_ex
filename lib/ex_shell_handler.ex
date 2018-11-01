@@ -88,7 +88,7 @@ defmodule ForthWithEx.ShellHandler.Default do
   defp handle_input(state, "%%" <> _name = code) when is_binary(code) do
     code = String.trim(code)
     IO.binwrite("Received shell special command: #{inspect(code)}")
-    special_cmds_cb = state.special_cmds_cb
+    special_cmds_mfa = state.special_cmds_mfa
 
     case code do
       "%%enumerate" ->
@@ -108,8 +108,9 @@ defmodule ForthWithEx.ShellHandler.Default do
       "%%exit" ->
         IO.puts("Goodbye.")
 
-      other when is_function(special_cmds_cb) ->
-        if state.special_cmds_cb.(other) do
+      other when is_tuple(special_cmds_mfa) ->
+        {m, f, _a} = special_cmds_mfa
+        if apply(m, f, [other]) do
           loop(state)
         else
           IO.puts("Uknown command `#{inspect other}`.")
@@ -139,11 +140,10 @@ defmodule ForthWithEx.ShellHandler.Default do
     uart_pid = Process.whereis(ForthWithEx.UART)
     Nerves.UART.write(uart_pid, "\n")
 
-    special_cmds_cb =
-      Application.get_env(:forthwith_ex, :special_commands_callback)
+    special_cmds_mfa =
+      Application.get_env(:forthwith_ex, :special_commands_mfa)
 
-
-    %{prefix: prefix, counter: 1, uart_pid: uart_pid, special_cmds_cb: special_cmds_cb  }
+    %{prefix: prefix, counter: 1, uart_pid: uart_pid, special_cmds_mfa: special_cmds_mfa  }
   end
 
   defp io_get(pid, prefix, counter) do

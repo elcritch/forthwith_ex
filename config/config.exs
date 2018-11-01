@@ -10,7 +10,7 @@ config :forthwith_ex, :ttyACM0,
 
 config :forthwith_ex,
   uarts: [:ttyACM0],
-  special_commands_callback: nil
+  special_commands_mfa: nil
 
 config :logger, backends: [:console]
 
