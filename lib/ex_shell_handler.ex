@@ -25,13 +25,13 @@ defmodule ForthWithEx.ShellHandler.Example do
 
   def on_shell() do
     {:ok, _} = Registry.register(Registry.ForthWithEx, ForthClient, "key")
-    :ok = IO.puts "Interactive example SSH shell - type exit ENTER to quit"
+    :ok = IO.puts "\\ Interactive ForthWith Shell - type `%%exit<ENTER>` to quit"
     loop(run_state([]))
   end
 
 
   def on_connect(username, ip, port, method) do
-    Logger.debug fn ->
+    Logger.info fn ->
       """
       Incoming SSH shell #{inspect self()} requested for #{username} from #{inspect ip}:#{inspect port} using #{inspect method}
       """
@@ -39,7 +39,7 @@ defmodule ForthWithEx.ShellHandler.Example do
   end
 
   def on_disconnect(username, ip, port) do
-    Logger.debug fn ->
+    Logger.info fn ->
       "Disconnecting SSH shell for #{username} from #{inspect ip}:#{inspect port}"
     end
   end
@@ -55,8 +55,9 @@ defmodule ForthWithEx.ShellHandler.Example do
 
   defp wait_input(state, input) do
     receive do
-      {:input_uart, _uart_pid, msg } ->
-        IO.puts "uart: #{inspect msg}"
+      {:nerves_uart, _uart_name, _str_msg } = msg ->
+        # IO.puts "uart: #{inspect msg}"
+        handle_input(state, msg)
       {:input, ^input, msg} when is_list(msg) ->
         handle_input(state, to_string(msg))
       {item, ^input, msg} ->
@@ -68,14 +69,31 @@ defmodule ForthWithEx.ShellHandler.Example do
     end
   end
 
-  defp handle_input(state, "exit\n") do
-    IO.puts "Exiting..."
+  defp handle_input(state, {:nerves_uart, _uart_name, msg}) do
+    IO.puts msg
+    loop(%{state | counter: state.counter + 1})
+  end
+
+  defp handle_input(state, "%%" <> _name = code) when is_binary(code) do
+    code = String.trim(code)
+    IO.puts "Received shell special command: #{inspect code}"
+
+    case code do
+      "%%enumerate" ->
+        IO.puts("#{inspect Nerves.UART.enumerate}")
+        loop(%{state | counter: state.counter + 1})
+      "%%time" ->
+        IO.puts("#{inspect Nerves.UART.enumerate}")
+        loop(%{state | counter: state.counter + 1})
+      "%%exit" ->
+        IO.puts("Goodbye.")
+    end
   end
 
   defp handle_input(state, code) when is_binary(code) do
-    code = String.trim(code)
-
-    IO.puts "Received shell command: #{inspect code}"
+    # code = String.trim(code) 
+    # IO.puts "Received shell command: #{inspect code}"
+    Nerves.UART.write(state.uart_pid, code)
 
     loop(%{state | counter: state.counter + 1})
   end
@@ -85,33 +103,21 @@ defmodule ForthWithEx.ShellHandler.Example do
     IO.puts "Exiting..."
   end
 
-  # defp handle_input(state, input) do
-  #     {:input, ^input, 'exit\n'} ->
-
-  #     {:input, ^input, code} when is_binary(code) ->
-
-  #     {:input, ^input, {:error, :interrupted}} ->
-  #       # loop(%{state | counter: state.counter + 1})
-
-  #     {:input, ^input, msg} ->
-  #       :ok = Logger.warn "received unknown message: #{inspect msg}"
-  #       loop(%{state | counter: state.counter + 1})
-  #   end
-  # end
-
   defp run_state(opts) do
     prefix = Keyword.get(opts, :prefix, "")
+    uart_pid = Process.whereis(ForthWithEx.UART)
+    Nerves.UART.write(uart_pid, "\n")
 
-    %{prefix: prefix, counter: 1}
+    %{prefix: prefix, counter: 1, uart_pid: uart_pid}
   end
 
   defp io_get(pid, prefix, counter) do
-    prompt = prompt(prefix, counter)
-    send pid, {:input, self(), IO.gets(:stdio, prompt)}
+    # prompt = prompt(prefix, counter)
+    send pid, {:input, self(), IO.gets(:stdio, "> ")}
   end
 
   defp prompt(prefix, counter) do
-    prompt = "(%node)%counter>"
+    prompt = "[%counter]"
       |> String.replace("%counter", to_string(counter))
       |> String.replace("%prefix", to_string(prefix))
       |> String.replace("%node", to_string(node()))

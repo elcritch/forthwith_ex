@@ -2,6 +2,14 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
+
+config :forthwith_ex, :ttyACM0,
+  name: "ttyACM0",
+  speed: 115200,
+  active: true
+
+config :forthwith_ex, uarts: [ :ttyACM0 ]
+
 config :logger, backends: [:console]
 
 # app_dir = Application.app_dir(:forthwith_ex)
