@@ -1,23 +1,36 @@
 defmodule ForthWithEx.UARTManager do
   use GenServer
+  require Logger
+
+  def open(pid) do
+    GenServer.cast(pid, :open)
+  end
+
+  def close(pid) do
+    GenServer.cast(pid, :close)
+  end
+
+  def reopen(pid) do
+    GenServer.cast(pid, :close)
+    GenServer.cast(pid, :open)
+  end
 
   # Callbacks
 
   @impl true
-  def init(opts \\ []) do
+  def init(_opts \\ []) do
     {:ok, %{}}
   end
 
   @impl true
   def handle_cast(:open, state) do
-    Application.get_env(:forthwith_ex, :uarts)
-    |> open_uarts()
+    Application.get_env(:forthwith_ex, :uarts) |> open_uarts()
 
     {:noreply, state}
   end
 
   @impl true
-  def handle_cast(:restart, state) do
+  def handle_cast(:close, state) do
     Application.get_env(:forthwith_ex, :uarts)
     |> close_uarts()
 
@@ -37,7 +50,7 @@ defmodule ForthWithEx.UARTManager do
     end)
   end
 
-  defp open_uarts() do
+  defp open_uarts(uarts) do
     Logger.warn("Starting UARTs...")
     pid = Process.whereis(ForthWithEx.UART)
 
@@ -45,7 +58,7 @@ defmodule ForthWithEx.UARTManager do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
       Logger.info("UART: #{inspect(dev_name)} -- #{inspect(dev_conf)}")
 
-      result = pid |> UART.open(dev_conf[:name], dev_conf)
+      result = pid |> Nerves.UART.open(dev_conf[:name], dev_conf)
       Logger.info("UART open: #{inspect(result)}")
 
       result =
@@ -58,17 +71,23 @@ defmodule ForthWithEx.UARTManager do
     end
   end
 
-  defp open_uarts(uarts) do
+  defp close_uarts(uarts) do
     Logger.warn("Closing UARTs...")
-    pid = Process.whereis(ForthWithEx.UART)
+
+    uart_pids =
+      Nerves.UART.find_pids
+      |> Enum.map(fn {x,y} -> {y,x} end)
+      |> Map.new
 
     for dev_name <- uarts do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
 
-      result = pid |> UART.open(dev_conf[:name], dev_conf)
+      result =
+        uart_pids
+        |> Map.get(dev_conf[:name])
+        |> Nerves.UART.close()
+
       Logger.info("UART close: #{inspect(result)}")
     end
-
-    loop_uarts()
   end
 end

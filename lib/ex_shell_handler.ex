@@ -96,11 +96,12 @@ defmodule ForthWithEx.ShellHandler.Example do
 
       "%%reconnect" ->
         IO.puts("Restarting UARTs: #{inspect(Application.get_env(:forthwith_ex, :uarts))}")
-        for uart
+        Process.whereis(:UARTManager) |> ForthWithEx.UARTManager.reopen()
+
         loop(%{state | counter: state.counter + 1})
 
       "%%time" ->
-        IO.puts("#{inspect(Nerves.UART.enumerate())}")
+        IO.puts("#{ DateTime.utc_now() |> DateTime.to_iso8601() }")
         loop(%{state | counter: state.counter + 1})
 
       "%%exit" ->
@@ -119,26 +120,6 @@ defmodule ForthWithEx.ShellHandler.Example do
   defp handle_input(state, {:error, :interrupted}) do
     IO.puts("Caught Ctrl+C...")
     IO.puts("Exiting...")
-  end
-
-  def restart_uarts() do
-    for dev_name <- Application.get_env(:forthwith_ex, :uarts) do
-      dev_conf = Application.get_env(:forthwith_ex, dev_name)
-      Logger.info("UART: #{inspect(dev_name)} -- #{inspect(dev_conf)}")
-
-      pid = Process.whereis(ForthWithEx.UART)
-
-      result = pid |> UART.open(dev_conf[:name], dev_conf)
-      Logger.info("UART open: #{inspect(result)}")
-
-      result =
-        pid
-        |> Nerves.UART.configure(
-          framing: {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>>}
-        )
-
-      Logger.info("UART configure: #{inspect(result)}")
-    end
   end
 
   defp run_state(opts) do
