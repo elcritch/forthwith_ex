@@ -87,7 +87,7 @@ defmodule ForthWithEx.ShellHandler.Default do
 
   defp handle_input(state, "%%" <> _name = code) when is_binary(code) do
     code = String.trim(code)
-    IO.binwrite("Received shell special command: #{inspect(code)}")
+    IO.puts("Received shell special command: #{inspect(code)}")
     special_cmds_mfa = state.special_cmds_mfa
 
     case code do
