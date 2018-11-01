@@ -1,4 +1,3 @@
-
 defmodule ForthWithEx.UART.Framing do
   @behaviour Nerves.UART.Framing
 

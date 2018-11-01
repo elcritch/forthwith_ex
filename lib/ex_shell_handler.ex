@@ -1,4 +1,3 @@
-
 defmodule ForthWithEx.ShellHandler.Example do
   use IExSshShell.ShellHandler
   # use GenServer
@@ -16,7 +15,7 @@ defmodule ForthWithEx.ShellHandler.Example do
   end
 
   # def start_link(opts) do
-    # GenServer.start_link(__MODULE__, opts)
+  # GenServer.start_link(__MODULE__, opts)
   # end
 
   def on_shell(_username, _pubkey, _ip, _port) do
@@ -25,47 +24,52 @@ defmodule ForthWithEx.ShellHandler.Example do
 
   def on_shell() do
     {:ok, _} = Registry.register(Registry.ForthWithEx, ForthClient, "key")
-    :ok = IO.puts "\\ Interactive ForthWith Shell - type `%%exit<ENTER>` to quit"
+    :ok = IO.puts("\\ Interactive ForthWith Shell - type `%%exit<ENTER>` to quit")
     loop(run_state([]))
   end
 
-
   def on_connect(username, ip, port, method) do
-    Logger.info fn ->
+    Logger.info(fn ->
       """
-      Incoming SSH shell #{inspect self()} requested for #{username} from #{inspect ip}:#{inspect port} using #{inspect method}
+      Incoming SSH shell #{inspect(self())} requested for #{username} from #{inspect(ip)}:#{
+        inspect(port)
+      } using #{inspect(method)}
       """
-    end
+    end)
   end
 
   def on_disconnect(username, ip, port) do
-    Logger.info fn ->
-      "Disconnecting SSH shell for #{username} from #{inspect ip}:#{inspect port}"
-    end
+    Logger.info(fn ->
+      "Disconnecting SSH shell for #{username} from #{inspect(ip)}:#{inspect(port)}"
+    end)
   end
 
   defp loop(state) do
     self_pid = self()
-    counter  = state.counter
-    prefix   = state.prefix
+    counter = state.counter
+    prefix = state.prefix
 
     input = spawn(fn -> io_get(self_pid, prefix, counter) end)
-    wait_input state, input
+    wait_input(state, input)
   end
 
   defp wait_input(state, input) do
     receive do
-      {:nerves_uart, _uart_name, _str_msg } = msg ->
+      {:nerves_uart, _uart_name, _str_msg} = msg ->
         # IO.puts "uart: #{inspect msg}"
         handle_input(state, msg)
+
       {:input, ^input, msg} when is_list(msg) ->
         handle_input(state, to_string(msg))
+
       {item, ^input, msg} ->
         handle_input(state, msg)
+
       {item, ^input, msg} ->
-        Logger.error("Unable to handle unknown msg: #{inspect item} -- #{inspect msg}")
+        Logger.error("Unable to handle unknown msg: #{inspect(item)} -- #{inspect(msg)}")
+
       other ->
-        Logger.error("Unable to handle unknown input: #{inspect other}")
+        Logger.error("Unable to handle unknown input: #{inspect(other)}")
     end
   end
 
@@ -83,19 +87,22 @@ defmodule ForthWithEx.ShellHandler.Example do
 
   defp handle_input(state, "%%" <> _name = code) when is_binary(code) do
     code = String.trim(code)
-    IO.puts "Received shell special command: #{inspect code}"
+    IO.puts("Received shell special command: #{inspect(code)}")
 
     case code do
       "%%enumerate" ->
-        IO.puts("UART: #{inspect Nerves.UART.enumerate}")
+        IO.puts("UART: #{inspect(Nerves.UART.enumerate())}")
         loop(%{state | counter: state.counter + 1})
+
       "%%reconnect" ->
-        IO.puts("Restarting UARTs: #{inspect Application.get_env(:forthwith_ex, :uarts)}")
-        for uart 
+        IO.puts("Restarting UARTs: #{inspect(Application.get_env(:forthwith_ex, :uarts))}")
+        for uart
         loop(%{state | counter: state.counter + 1})
+
       "%%time" ->
-        IO.puts("#{inspect Nerves.UART.enumerate}")
+        IO.puts("#{inspect(Nerves.UART.enumerate())}")
         loop(%{state | counter: state.counter + 1})
+
       "%%exit" ->
         IO.puts("Goodbye.")
     end
@@ -110,26 +117,27 @@ defmodule ForthWithEx.ShellHandler.Example do
   end
 
   defp handle_input(state, {:error, :interrupted}) do
-    IO.puts "Caught Ctrl+C..."
-    IO.puts "Exiting..."
+    IO.puts("Caught Ctrl+C...")
+    IO.puts("Exiting...")
   end
 
   def restart_uarts() do
     for dev_name <- Application.get_env(:forthwith_ex, :uarts) do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
-      Logger.info("UART: #{inspect dev_name} -- #{inspect dev_conf}")
+      Logger.info("UART: #{inspect(dev_name)} -- #{inspect(dev_conf)}")
 
       pid = Process.whereis(ForthWithEx.UART)
 
-      result = 
-        pid |> UART.open(dev_conf[:name], dev_conf)
-      Logger.info("UART open: #{inspect result}")
+      result = pid |> UART.open(dev_conf[:name], dev_conf)
+      Logger.info("UART open: #{inspect(result)}")
 
-      result = 
-        pid |> Nerves.UART.configure(framing:
-        {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>> })
+      result =
+        pid
+        |> Nerves.UART.configure(
+          framing: {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>>}
+        )
 
-      Logger.info("UART configure: #{inspect result}")
+      Logger.info("UART configure: #{inspect(result)}")
     end
   end
 
@@ -143,11 +151,12 @@ defmodule ForthWithEx.ShellHandler.Example do
 
   defp io_get(pid, prefix, counter) do
     # prompt = prompt(prefix, counter)
-    send pid, {:input, self(), IO.gets(:stdio, " ")}
+    send(pid, {:input, self(), IO.gets(:stdio, " ")})
   end
 
   defp prompt(prefix, counter) do
-    prompt = "[%counter]"
+    prompt =
+      "[%counter]"
       |> String.replace("%counter", to_string(counter))
       |> String.replace("%prefix", to_string(prefix))
       |> String.replace("%node", to_string(node()))

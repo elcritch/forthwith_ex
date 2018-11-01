@@ -1,5 +1,4 @@
-
-defmodule ForthWithEx.UARTManager. do
+defmodule ForthWithEx.UARTManager do
   use GenServer
 
   # Callbacks
@@ -41,32 +40,33 @@ defmodule ForthWithEx.UARTManager. do
   defp open_uarts() do
     Logger.warn("Starting UARTs...")
     pid = Process.whereis(ForthWithEx.UART)
-    for dev_name <- Application.get_env(:forthwith_ex, :uarts) do
+
+    for dev_name <- uarts do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
-      Logger.info("UART: #{inspect dev_name} -- #{inspect dev_conf}")
+      Logger.info("UART: #{inspect(dev_name)} -- #{inspect(dev_conf)}")
 
-      result = 
-        pid |> UART.open(dev_conf[:name], dev_conf)
-      Logger.info("UART open: #{inspect result}")
+      result = pid |> UART.open(dev_conf[:name], dev_conf)
+      Logger.info("UART open: #{inspect(result)}")
 
-      result = 
-        pid |> Nerves.UART.configure(framing:
-        {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>> })
+      result =
+        pid
+        |> Nerves.UART.configure(
+          framing: {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>>}
+        )
 
-      Logger.info("UART configure: #{inspect result}")
+      Logger.info("UART configure: #{inspect(result)}")
     end
   end
 
   defp open_uarts(uarts) do
     Logger.warn("Closing UARTs...")
     pid = Process.whereis(ForthWithEx.UART)
-    for dev_name <-  do
+
+    for dev_name <- uarts do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
 
-      result = 
-        pid |> UART.open(dev_conf[:name], dev_conf)
-      Logger.info("UART close: #{inspect result}")
-
+      result = pid |> UART.open(dev_conf[:name], dev_conf)
+      Logger.info("UART close: #{inspect(result)}")
     end
 
     loop_uarts()
