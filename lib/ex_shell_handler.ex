@@ -24,7 +24,7 @@ defmodule ForthWithEx.ShellHandler.Example do
   end
 
   def on_shell() do
-    Process.register self(), ForthWithEx.ShellHandler.SSH
+    {:ok, _} = Registry.register(Registry.ForthWithEx, ForthClient, "key")
     :ok = IO.puts "Interactive example SSH shell - type exit ENTER to quit"
     loop(run_state([]))
   end
@@ -55,9 +55,16 @@ defmodule ForthWithEx.ShellHandler.Example do
 
   defp wait_input(state, input) do
     receive do
-      {:input, ^input, msg} when is_list(msg) -> handle_input(state, to_string(msg))
-      {:input, ^input, msg} -> handle_input(state, msg)
-      msg -> Logger.error("Unable to handle unknown input: #{inspect msg}")
+      {:input_uart, _uart_pid, msg } ->
+        IO.puts "uart: #{inspect msg}"
+      {:input, ^input, msg} when is_list(msg) ->
+        handle_input(state, to_string(msg))
+      {item, ^input, msg} ->
+        handle_input(state, msg)
+      {item, ^input, msg} ->
+        Logger.error("Unable to handle unknown msg: #{inspect item} -- #{inspect msg}")
+      other ->
+        Logger.error("Unable to handle unknown input: #{inspect other}")
     end
   end
 
@@ -76,11 +83,6 @@ defmodule ForthWithEx.ShellHandler.Example do
   defp handle_input(state, {:error, :interrupted}) do
     IO.puts "Caught Ctrl+C..."
     IO.puts "Exiting..."
-  end
-
-  defp handle_input(state, msg) do
-    :ok = Logger.warn "received unknown message: #{inspect msg}"
-    loop(%{state | counter: state.counter + 1})
   end
 
   # defp handle_input(state, input) do
