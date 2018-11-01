@@ -109,7 +109,7 @@ defmodule ForthWithEx.ShellHandler.Example do
 
       _other ->
         IO.puts("Uknown command `#{inspect msg}`.")
-        loop(%{state })
+        loop(state)
     end
   end
 
