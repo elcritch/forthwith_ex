@@ -1,6 +1,6 @@
-defmodule ForthwithEx do
+defmodule ForthWithEx do
   @moduledoc """
-  Documentation for ForthwithEx.
+  Documentation for ForthWithEx.
   """
 
   @doc """
@@ -8,13 +8,15 @@ defmodule ForthwithEx do
 
   ## Examples
 
-      iex> ForthwithEx.hello
+      iex> ForthWithEx.hello
       :world
 
   """
-  def hello do
-    :world
+
+  def start(_type, _args) do
+    ForthWithEx.Supervisor.start_link(name: KV.Supervisor)
   end
+
 end
 
 

@@ -1,5 +1,5 @@
 
-defmodule ForthwithEx.ShellHandler.Example do
+defmodule ForthWithEx.ShellHandler.Example do
   use IExSshShell.ShellHandler
   use GenServer
   require Logger
@@ -24,6 +24,7 @@ defmodule ForthwithEx.ShellHandler.Example do
   end
 
   def on_shell() do
+    Process.register self(), ForthWithEx.ShellHandler.SSH
     :ok = IO.puts "Interactive example SSH shell - type exit ENTER to quit"
     loop(run_state([]))
   end
