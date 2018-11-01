@@ -23,6 +23,7 @@ defmodule ForthWithEx.UARTManager do
 
   @impl true
   def init(_opts \\ []) do
+    open(self())
     {:ok, %{}}
   end
 
