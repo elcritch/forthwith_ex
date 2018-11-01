@@ -2,7 +2,6 @@ defmodule ForthWithEx.UARTManager do
   use GenServer
   require Logger
 
-  @impl true
   def start_link(default) when is_list(default) do
     GenServer.start_link(__MODULE__, default)
   end
@@ -89,7 +88,7 @@ defmodule ForthWithEx.UARTManager do
 
       result =
         uart_pids
-        |> Map.get(dev_conf[:name])Nerves.UART.find_pids |> Enum.map(fn {x,y} -> {y,x} end) |> Map.new |> Map.get("ttyO4")
+        |> Map.get(dev_conf[:name])
         |> Nerves.UART.close()
 
       Logger.info("UART close: #{inspect(result)}")

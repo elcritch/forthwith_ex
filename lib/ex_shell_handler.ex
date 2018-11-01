@@ -99,7 +99,7 @@ defmodule ForthWithEx.ShellHandler.Example do
         Process.whereis(:UARTManager) |> ForthWithEx.UARTManager.reopen()
 
         loop(%{state | counter: state.counter + 1})
-
+h
       "%%time" ->
         IO.puts("#{ DateTime.utc_now() |> DateTime.to_iso8601() }")
         loop(%{state | counter: state.counter + 1})
