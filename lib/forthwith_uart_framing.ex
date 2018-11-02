@@ -15,7 +15,7 @@ defmodule ForthWithEx.UART.Framing do
   end
 
   def add_framing(data, state) do
-    {:ok, data, state}
+    {:ok, data <> "\n", state}
   end
 
   def remove_framing(data, state) do
