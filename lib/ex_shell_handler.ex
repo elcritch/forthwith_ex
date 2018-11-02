@@ -23,7 +23,7 @@ defmodule ForthWithEx.ShellHandler.Default do
   end
 
   def on_shell() do
-    {:ok, _} = Registry.register(Registry.ForthWithEx, ForthClient, "key")
+    Registry.register(Registry.ForthWithEx, ForthClient, "")
     :ok = IO.puts("\\ Interactive ForthWith Shell - type `%%exit<ENTER>` to quit")
     loop(run_state([]))
   end
