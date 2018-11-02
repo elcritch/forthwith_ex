@@ -9,7 +9,7 @@ defmodule ForthWithEx do
     Logger.warn("starting forthwith_ex")
 
     children = [
-      {Registry, keys: :unique, name: Registry.ForthWithEx},
+      {Registry, keys: :duplicate, name: Registry.ForthWithEx},
       {Nerves.UART, name: ForthWithEx.UART},
       # {Task, &initialize_uart/0},
       {ForthWithEx.UARTManager, name: UARTManager}
