@@ -78,6 +78,11 @@ defmodule ForthWithEx.ShellHandler.Default do
     loop(%{state | counter: state.counter + 1})
   end
 
+  defp handle_input(state, {:nerves_uart, _uart_name, {:error, reason} = error}) do
+    IO.puts(:stderr, "[[ Error: #{inspect error} ]]")
+    loop(%{state | counter: state.counter + 1})
+  end
+
   defp handle_input(state, {:nerves_uart, _uart_name, msg}) do
     # IO.puts("IN: #{inspect msg <> <<0>> }")
     # IO.write(msg |> String.trim("\r\n" <> <<6>>))
