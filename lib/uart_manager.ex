@@ -4,7 +4,7 @@ defmodule ForthWithEx.UARTManager do
 
   def start_link(opts) do
     Logger.error("ForthWithEx.UARTManager ")
-    GenServer.start_link(__MODULE__, opts ++ [name: __MODULE__])
+    GenServer.start_link(__MODULE__, [], opts ++ [name: __MODULE__])
   end
 
   def open(pid) do
@@ -25,7 +25,7 @@ defmodule ForthWithEx.UARTManager do
   @impl true
   def init(_opts \\ []) do
     open(self())
-    {:ok, %{}}
+    {:ok, %{ manager: true }}
   end
 
   @impl true
