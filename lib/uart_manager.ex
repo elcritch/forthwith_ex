@@ -3,6 +3,7 @@ defmodule ForthWithEx.UARTManager do
   require Logger
 
   def start_link(opts) do
+    Logger.error("ForthWithEx.UARTManager ")
     GenServer.start_link(__MODULE__, opts ++ [name: __MODULE__])
   end
 

@@ -12,7 +12,7 @@ defmodule ForthWithEx do
       {Registry, keys: :duplicate, name: Registry.ForthWithEx},
       {Nerves.UART, name: ForthWithEx.UART},
       # {Task, &initialize_uart/0},
-      {ForthWithEx.UARTManager, name: UARTManager}
+      {ForthWithEx.UARTManager, []}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one)
