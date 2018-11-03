@@ -67,14 +67,21 @@ defmodule ForthWithEx.UARTManager do
       result = pid |> Nerves.UART.open(dev_conf[:name], dev_conf)
       Logger.info("UART open: #{inspect(result)}")
 
-      result =
-        pid
-        |> Nerves.UART.configure(
-          framing: {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>>}
-        )
+      case result do
+        :ok ->
+          result =
+            pid
+            |> Nerves.UART.configure(
+              framing: {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>>}
+            )
 
-      Logger.info("UART configure: #{inspect(result)}")
+          Logger.info("UART configure: #{inspect(result)}")
+
+        {:error, :enoent} ->
+          Process.send_after(self, {:"$gen_cast", :open}, 200)
+      end
     end
+
   end
 
   defp close_uarts(uarts) do
