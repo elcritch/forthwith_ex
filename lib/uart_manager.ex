@@ -3,7 +3,7 @@ defmodule ForthWithEx.UARTManager do
   require Logger
 
   def start_link(opts) do
-    Logger.error("ForthWithEx.UARTManager ")
+    Logger.info("ForthWithEx.UARTManager ")
     GenServer.start_link(__MODULE__, [], opts ++ [name: __MODULE__])
   end
 
@@ -21,6 +21,7 @@ defmodule ForthWithEx.UARTManager do
   end
 
   # Callbacks
+  @max_timeout 60_000
 
   @impl true
   def init(_opts \\ []) do
@@ -30,7 +31,14 @@ defmodule ForthWithEx.UARTManager do
 
   @impl true
   def handle_cast(:open, state) do
-    Application.get_env(:forthwith_ex, :uarts) |> open_uarts()
+    Application.get_env(:forthwith_ex, :uarts) |> open_uarts(1)
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast({:open, timeout}, state) do
+    Application.get_env(:forthwith_ex, :uarts) |> open_uarts(timeout)
 
     {:noreply, state}
   end
@@ -56,16 +64,15 @@ defmodule ForthWithEx.UARTManager do
     end)
   end
 
-  defp open_uarts(uarts) do
-    Logger.warn("Starting UARTs...")
+  defp open_uarts(uarts, timeout) do
     pid = Process.whereis(ForthWithEx.UART)
 
     for dev_name <- uarts do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
-      Logger.info("UART: #{inspect(dev_name)} -- #{inspect(dev_conf)}")
+      Logger.info("Opening UART: #{inspect(dev_name)} -- #{inspect(dev_conf)}")
 
       result = pid |> Nerves.UART.open(dev_conf[:name], dev_conf)
-      Logger.info("UART open: #{inspect(result)}")
+      Logger.info("UART open result: #{inspect(result)}")
 
       case result do
         :ok ->
@@ -78,7 +85,7 @@ defmodule ForthWithEx.UARTManager do
           Logger.info("UART configure: #{inspect(result)}")
 
         {:error, :enoent} ->
-          Process.send_after(self, {:"$gen_cast", :open}, 200)
+          Process.send_after(self, {:"$gen_cast", :open}, 2*timeout)
       end
     end
 
