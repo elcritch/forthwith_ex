@@ -7,7 +7,9 @@ defmodule ForthWithEx.UART.Framing do
   end
 
   def init(args) do
-    max_length = Keyword.get(args, :max_length, Application.get_env(:forthwith_ex, :buffer_size, 8192))
+    max_length =
+      Keyword.get(args, :max_length, Application.get_env(:forthwith_ex, :buffer_size, 8192))
+
     separator = Keyword.get(args, :separator, "\n")
 
     state = %State{max_length: max_length, separator: separator}

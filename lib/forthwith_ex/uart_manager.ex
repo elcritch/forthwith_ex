@@ -26,7 +26,7 @@ defmodule ForthWithEx.UARTManager do
   @impl true
   def init(_opts \\ []) do
     open(self())
-    {:ok, %{ manager: true }}
+    {:ok, %{manager: true}}
   end
 
   @impl true
@@ -38,7 +38,7 @@ defmodule ForthWithEx.UARTManager do
 
   @impl true
   def handle_cast({:open, timeout}, state) do
-    if timeout < @max_timeout  do
+    if timeout < @max_timeout do
       Application.get_env(:forthwith_ex, :uarts) |> open_uarts(timeout)
     end
 
@@ -87,19 +87,18 @@ defmodule ForthWithEx.UARTManager do
           Logger.info("UART configure: #{inspect(result)}")
 
         {:error, :enoent} ->
-          Process.send_after(self(), {:"$gen_cast", :open}, 2*timeout)
+          Process.send_after(self(), {:"$gen_cast", :open}, 2 * timeout)
       end
     end
-
   end
 
   defp close_uarts(uarts) do
     Logger.warn("Closing UARTs...")
 
     uart_pids =
-      Nerves.UART.find_pids
-      |> Enum.map(fn {x,y} -> {y,x} end)
-      |> Map.new
+      Nerves.UART.find_pids()
+      |> Enum.map(fn {x, y} -> {y, x} end)
+      |> Map.new()
 
     for dev_name <- uarts do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)

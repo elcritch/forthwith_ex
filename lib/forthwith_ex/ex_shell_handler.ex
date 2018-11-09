@@ -79,7 +79,7 @@ defmodule ForthWithEx.ShellHandler.Default do
   end
 
   defp handle_input(state, {:nerves_uart, _uart_name, {:error, _reason} = error}) do
-    IO.puts(:stderr, "[[ Error: #{inspect error} ]]")
+    IO.puts(:stderr, "[[ Error: #{inspect(error)} ]]")
     loop(%{state | counter: state.counter + 1})
   end
 
@@ -107,7 +107,7 @@ defmodule ForthWithEx.ShellHandler.Default do
         loop(%{state | counter: state.counter + 1})
 
       "%%time" ->
-        IO.puts("#{ DateTime.utc_now() |> DateTime.to_iso8601() }")
+        IO.puts("#{DateTime.utc_now() |> DateTime.to_iso8601()}")
         loop(%{state | counter: state.counter + 1})
 
       "%%exit" ->
@@ -115,14 +115,15 @@ defmodule ForthWithEx.ShellHandler.Default do
 
       other when is_tuple(special_cmds_mfa) ->
         {m, f, _a} = special_cmds_mfa
+
         if apply(m, f, [other]) do
           loop(state)
         else
-          IO.puts("Uknown command `#{inspect other}`.")
+          IO.puts("Uknown command `#{inspect(other)}`.")
         end
 
       other ->
-        IO.puts("Uknown command `#{inspect other}`.")
+        IO.puts("Uknown command `#{inspect(other)}`.")
         loop(state)
     end
   end
@@ -145,10 +146,9 @@ defmodule ForthWithEx.ShellHandler.Default do
     uart_pid = Process.whereis(ForthWithEx.UART)
     Nerves.UART.write(uart_pid, "\n")
 
-    special_cmds_mfa =
-      Application.get_env(:forthwith_ex, :special_commands_mfa)
+    special_cmds_mfa = Application.get_env(:forthwith_ex, :special_commands_mfa)
 
-    %{prefix: prefix, counter: 1, uart_pid: uart_pid, special_cmds_mfa: special_cmds_mfa  }
+    %{prefix: prefix, counter: 1, uart_pid: uart_pid, special_cmds_mfa: special_cmds_mfa}
   end
 
   defp io_get(pid, prefix, counter) do
