@@ -78,7 +78,7 @@ defmodule ForthWithEx.ShellHandler.Default do
     loop(%{state | counter: state.counter + 1})
   end
 
-  defp handle_input(state, {:nerves_uart, _uart_name, {:error, reason} = error}) do
+  defp handle_input(state, {:nerves_uart, _uart_name, {:error, _reason} = error}) do
     IO.puts(:stderr, "[[ Error: #{inspect error} ]]")
     loop(%{state | counter: state.counter + 1})
   end

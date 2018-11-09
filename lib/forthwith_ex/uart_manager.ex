@@ -38,7 +38,9 @@ defmodule ForthWithEx.UARTManager do
 
   @impl true
   def handle_cast({:open, timeout}, state) do
-    Application.get_env(:forthwith_ex, :uarts) |> open_uarts(timeout)
+    if timeout < @max_timeout  do
+      Application.get_env(:forthwith_ex, :uarts) |> open_uarts(timeout)
+    end
 
     {:noreply, state}
   end
@@ -85,7 +87,7 @@ defmodule ForthWithEx.UARTManager do
           Logger.info("UART configure: #{inspect(result)}")
 
         {:error, :enoent} ->
-          Process.send_after(self, {:"$gen_cast", :open}, 2*timeout)
+          Process.send_after(self(), {:"$gen_cast", :open}, 2*timeout)
       end
     end
 
