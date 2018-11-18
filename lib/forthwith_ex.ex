@@ -18,8 +18,8 @@ defmodule ForthWithEx do
   end
 
   def initialize_uart() do
-    Logger.info("Starting UARTs...")
     separator = Application.get_env(:forthwith_ex, :separator, << "\r", "\n", 6>>)
+    Logger.info("Starting UARTs with separator: #{inspect separator}")
     for dev_name <- Application.get_env(:forthwith_ex, :uarts) do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
       Logger.info("UART: #{inspect dev_name} -- #{inspect dev_conf}")
