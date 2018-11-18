@@ -8,7 +8,7 @@ defmodule ForthWithEx do
 
   def start(_type, _args) do
     children = [
-      {Registry, keys: :unique, name: Registry.ForthWithEx},
+      {Registry, keys: :duplicate, name: Registry.ForthWithEx},
       {Nerves.UART, name: ForthWithEx.UART},
       {Task, &initialize_uart/0}
     ]
