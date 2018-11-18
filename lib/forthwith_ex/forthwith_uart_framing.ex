@@ -76,7 +76,12 @@ defmodule ForthWithEx.UART.Framing do
 
   # Process data until separator or next char
   defp process_data(
-         %State{separator: separator, sep_length: sep_length, max_length: max_length} = state,
+         %State{
+           separator: separator,
+           sep_length: sep_length,
+           max_length: max_length,
+           line_split: line_split
+         } = state,
          processed,
          to_process,
          lines
