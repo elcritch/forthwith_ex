@@ -17,6 +17,7 @@ defmodule ForthWithEx do
 
   def initialize_uart() do
     Logger.info("Starting UARTs...")
+    separator = Application.get_env(:forthwith_ex, :separator, << "\r", "\n", 6>>)
     for dev_name <- Application.get_env(:forthwith_ex, :uarts) do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
       Logger.info("UART: #{inspect dev_name} -- #{inspect dev_conf}")
@@ -29,7 +30,7 @@ defmodule ForthWithEx do
 
       result = 
         pid |> Nerves.UART.configure(framing:
-          {ForthWithEx.UART.Framing, separator: <<"\r", "\n", 6>> })
+          {ForthWithEx.UART.Framing, separator: separator })
 
       Logger.info("UART configure: #{inspect result}")
     end
