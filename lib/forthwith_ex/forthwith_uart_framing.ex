@@ -89,12 +89,12 @@ defmodule ForthWithEx.UART.Framing do
     case to_process do
       # Handle separater
       <<^separator::binary-size(sep_length), rest::binary>> ->
-        new_lines = lines ++ String.split(processed, sep_length)
+        new_lines = lines ++ String.split(processed, line_split)
         process_data(state, <<>>, rest, new_lines)
 
       # Handle line too long case
       to_process when byte_size(processed) == max_length and to_process != <<>> ->
-        next_lines = String.split(processed, sep_length)
+        next_lines = String.split(processed, line_split)
         new_lines = lines ++ [{:partial, next_lines}]
         process_data(state, <<>>, to_process, new_lines)
 
