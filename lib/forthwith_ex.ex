@@ -10,31 +10,34 @@ defmodule ForthWithEx do
     children = [
       {Registry, keys: :unique, name: Registry.ForthWithEx},
       {Nerves.UART, name: ForthWithEx.UART},
-      {Task, &initialize_uart/0},
+      {Task, &initialize_uart/0}
     ]
+
     Supervisor.start_link(children, strategy: :one_for_one)
   end
 
   def initialize_uart() do
     Logger.info("Starting UARTs...")
-    separator = Application.get_env(:forthwith_ex, :separator, << "\r", "\n", 6>>)
-    Logger.info("Framing UARTs using separator #{inspect separator}")
+    separator = Application.get_env(:forthwith_ex, :separator, <<"\r", "\n", 6>>)
+    line_split = Application.get_env(:forthwith_ex, :line_split, "\n")
+    Logger.info("Framing UARTs using separator #{inspect(separator)}")
 
     for dev_name <- Application.get_env(:forthwith_ex, :uarts) do
       dev_conf = Application.get_env(:forthwith_ex, dev_name)
-      Logger.info("UART: #{inspect dev_name} -- #{inspect dev_conf}")
+      Logger.info("UART: #{inspect(dev_name)} -- #{inspect(dev_conf)}")
 
       pid = Process.whereis(ForthWithEx.UART)
 
-      result = 
-        pid |> UART.open(dev_conf[:name], dev_conf)
-      Logger.info("UART open: #{inspect result}")
+      result = pid |> UART.open(dev_conf[:name], dev_conf)
+      Logger.info("UART open: #{inspect(result)}")
 
-      result = 
-        pid |> Nerves.UART.configure(framing:
-          {ForthWithEx.UART.Framing, separator: separator })
+      result =
+        pid
+        |> Nerves.UART.configure(
+          framing: {ForthWithEx.UART.Framing, separator: separator, line_split: line_split}
+        )
 
-      Logger.info("UART configure: #{inspect result}")
+      Logger.info("UART configure: #{inspect(result)}")
     end
 
     loop_uarts()
@@ -45,6 +48,7 @@ defmodule ForthWithEx do
       msg ->
         publish_uart(msg)
     end
+
     loop_uarts()
   end
 
@@ -54,4 +58,3 @@ defmodule ForthWithEx do
     end)
   end
 end
-
