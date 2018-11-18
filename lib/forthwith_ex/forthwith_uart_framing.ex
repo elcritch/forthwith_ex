@@ -1,4 +1,3 @@
-
 defmodule ForthWithEx.UART.Framing do
   @behaviour Nerves.UART.Framing
 
@@ -8,7 +7,9 @@ defmodule ForthWithEx.UART.Framing do
   end
 
   def init(args) do
-    max_length = Keyword.get(args, :max_length, 4096)
+    max_length =
+      Keyword.get(args, :max_length, Application.get_env(:forthwith_ex, :buffer_size, 8192))
+
     separator = Keyword.get(args, :separator, "\n")
 
     state = %State{max_length: max_length, separator: separator}
@@ -16,7 +17,7 @@ defmodule ForthWithEx.UART.Framing do
   end
 
   def add_framing(data, state) do
-    {:ok, data, state}
+    {:ok, data <> "\n", state}
   end
 
   def remove_framing(data, state) do

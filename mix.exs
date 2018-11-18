@@ -14,8 +14,8 @@ defmodule ForthWithEx.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {ForthWithEx, []},
+      extra_applications: [:logger, :iex_ssh_shell],
+      mod: {ForthWithEx, []}
     ]
   end
 
@@ -23,7 +23,7 @@ defmodule ForthWithEx.MixProject do
   defp deps do
     [
       {:nerves_uart, "~> 1.2"},
-      {:iex_ssh_shell, github: "elcritch/iex_ssh_shell", branch: "master"},
+      {:iex_ssh_shell, github: "elcritch/iex_ssh_shell", branch: "master"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
     ]

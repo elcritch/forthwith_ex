@@ -1,16 +1,18 @@
 defmodule ForthWithEx do
   require Logger
-  alias Nerves.UART
 
   @moduledoc """
   Documentation for ForthWithEx.
   """
 
   def start(_type, _args) do
+    Logger.warn("starting forthwith_ex")
+
     children = [
-      {Registry, keys: :unique, name: Registry.ForthWithEx},
+      {Registry, keys: :duplicate, name: Registry.ForthWithEx},
       {Nerves.UART, name: ForthWithEx.UART},
-      {Task, &initialize_uart/0},
+      # {Task, &initialize_uart/0},
+      {ForthWithEx.UARTManager, []}
     ]
     Supervisor.start_link(children, strategy: :one_for_one)
   end
@@ -32,24 +34,6 @@ defmodule ForthWithEx do
         pid |> Nerves.UART.configure(framing:
           {ForthWithEx.UART.Framing, separator: separator })
 
-      Logger.info("UART configure: #{inspect result}")
-    end
-
-    loop_uarts()
-  end
-
-  def loop_uarts() do
-    receive do
-      msg ->
-        publish_uart(msg)
-    end
-    loop_uarts()
-  end
-
-  def publish_uart(msg) do
-    Registry.dispatch(Registry.ForthWithEx, ForthClient, fn entries ->
-      for {pid, _} <- entries, do: send(pid, msg)
-    end)
+    Supervisor.start_link(children, strategy: :one_for_one)
   end
 end
-

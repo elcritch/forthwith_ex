@@ -1,6 +1,6 @@
 # ForthwithEx
 
-**TODO: Add description**
+WIP: still working heavily on this. I hope to release a `iex_ssh_shell` customized for making quick and easy TUI prompts. 
 
 ## Installation
 
