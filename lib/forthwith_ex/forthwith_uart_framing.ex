@@ -34,7 +34,8 @@ defmodule ForthWithEx.UART.Framing do
   end
 
   def remove_framing(data, state) do
-    {new_processed, new_in_process, lines} = process_data(state, state.in_process <> data, [])
+    {new_processed, new_in_process, lines} =
+      process_data(state, state.processed, state.in_process <> data, [])
 
     new_state = %{state | processed: new_processed, in_process: new_in_process}
     rc = if buffer_empty?(new_state), do: :ok, else: :in_frame
@@ -63,9 +64,9 @@ defmodule ForthWithEx.UART.Framing do
          %State{
            separator: _sep,
            sep_length: sep_length,
-           max_length: _max_length,
-           processed: processed
+           max_length: _max_length
          },
+         processed,
          to_process,
          lines
        )
@@ -74,18 +75,23 @@ defmodule ForthWithEx.UART.Framing do
   end
 
   # Process data until separator or next char
-  defp process_data(separator, sep_length, max_length, processed, to_process, lines) do
+  defp process_data(
+         %State{separator: separator, sep_length: sep_length, max_length: max_length} = state,
+         processed,
+         to_process,
+         lines
+       ) do
     case to_process do
       # Handle separater
       <<^separator::binary-size(sep_length), rest::binary>> ->
-        new_lines = lines ++ String.split(processed, "\n")
-        process_data(state, <<>>, rest)
+        new_lines = lines ++ String.split(processed, sep_length)
+        process_data(state, <<>>, rest, new_lines)
 
       # Handle line too long case
       to_process when byte_size(processed) == max_length and to_process != <<>> ->
-        newlines = processed |> String.split("\n")
-        new_lines = lines ++ [{:partial, newlines}]
-        process_data(state, to_process, new_lines)
+        next_lines = String.split(processed, sep_length)
+        new_lines = lines ++ [{:partial, next_lines}]
+        process_data(state, <<>>, to_process, new_lines)
 
       # Handle next char
       <<next_char::binary-size(1), rest::binary>> ->
